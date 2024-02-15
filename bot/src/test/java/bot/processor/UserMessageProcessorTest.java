@@ -33,9 +33,8 @@ public class UserMessageProcessorTest {
     private Chat chat;
     @InjectMocks
     private UserMessageProcessorImpl userMessageProcessorImpl;
-    private static final Long chatId = 1L;
-
-    private void setUp(String commandText) {
+    private void setUp(String commandText, Long chatId) {
+        this.userMessageProcessorImpl = new UserMessageProcessorImpl();
         doReturn(message).when(update).message();
         doReturn(commandText).when(message).text();
         doReturn(chat).when(message).chat();
@@ -60,8 +59,9 @@ public class UserMessageProcessorTest {
 
     @Test
     void testStartCommandProcess() {
+        Long chatId = 1L;
         String correctTextSendMessage = START_WORK;
-        setUp("/start");
+        setUp("/start", chatId);
 
         SendMessage correctSendMessage = new SendMessage(chatId, correctTextSendMessage);
         SendMessage result = userMessageProcessorImpl.process(update);
@@ -71,6 +71,7 @@ public class UserMessageProcessorTest {
 
     @Test
     void testHelpCommandProcess() {
+        Long chatId = 2L;
         String correctTextSendMessage = "/help - выводит окно с командами\n\n" +
             "/list - показывает список отслеживаемых ссылок\n\n" +
             "/start - регистрирует пользователя\n\n" +
@@ -78,7 +79,7 @@ public class UserMessageProcessorTest {
             " Чтобы начать отслеживание ссылки введите комманду \"/track ваша_ссылка\"\n\n" +
             "/untrack - прекращает отслеживание ссылки." +
             " Чтобы закончить отслеживание ссылки введите комманду \"/untrack ваша_ссылка\"\n\n";
-        setUp("/help");
+        setUp("/help", chatId);
 
         SendMessage correctSendMessage = new SendMessage(chatId, correctTextSendMessage);
         SendMessage result = userMessageProcessorImpl.process(update);
@@ -88,8 +89,9 @@ public class UserMessageProcessorTest {
 
     @Test
     void testListCommandProcess() {
+        Long chatId = 3L;
         String correctTextSendMessage = "нет отслежтиваемых ссылок";
-        setUp("/list");
+        setUp("/list", chatId);
 
         SendMessage correctSendMessage = new SendMessage(chatId, correctTextSendMessage);
         SendMessage result = userMessageProcessorImpl.process(update);
@@ -99,9 +101,10 @@ public class UserMessageProcessorTest {
 
     @Test
     void testTrackCommandProcess() {
+        Long chatId = 4L;
         String linkUri = "https://github.com/Nikolay-Bezmen";
         String correctTextSendMessage = "ссылка \"%s\" с этого момента отслеживается".formatted(linkUri);
-        setUp("/track %s".formatted(linkUri));
+        setUp("/track %s".formatted(linkUri), chatId);
 
         SendMessage correctSendMessage = new SendMessage(chatId, correctTextSendMessage);
         SendMessage result = userMessageProcessorImpl.process(update);
@@ -113,9 +116,10 @@ public class UserMessageProcessorTest {
 
     @Test
     void testUnTrackCommandProcess() {
+        Long chatId = 5L;
         String linkUri = "https://github.com/Nikolay-Bezmen";
         String correctTextSendMessage = "ссылки \"%s\" нет в списке отслеживаемых".formatted(linkUri);
-        setUp("/untrack %s".formatted(linkUri));
+        setUp("/untrack %s".formatted(linkUri), chatId);
 
         SendMessage correctSendMessage = new SendMessage(chatId, correctTextSendMessage);
         SendMessage result = userMessageProcessorImpl.process(update);
