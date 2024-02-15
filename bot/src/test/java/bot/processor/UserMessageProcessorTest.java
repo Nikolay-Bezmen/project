@@ -34,7 +34,6 @@ public class UserMessageProcessorTest {
     @InjectMocks
     private UserMessageProcessorImpl userMessageProcessorImpl;
     private void setUp(String commandText, Long chatId) {
-        this.userMessageProcessorImpl = new UserMessageProcessorImpl();
         doReturn(message).when(update).message();
         doReturn(commandText).when(message).text();
         doReturn(chat).when(message).chat();
