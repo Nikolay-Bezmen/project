@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static edu.java.bot.commands.StartCommand.START_WORK;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 public class UserMessageProcessorTest {
@@ -44,11 +45,11 @@ public class UserMessageProcessorTest {
     @DisplayName("тестирование метода commands который должен вернуть все доступные комманды")
     void testCommands() {
         var correctCommandList = List.of(
-            new StartCommand(),
-            new ListCommand(),
-            new UnTrackCommand(),
-            new TrackCommand(),
-            new HelpCommand()
+            mock(StartCommand.class),
+            mock(ListCommand.class),
+            mock(UnTrackCommand.class),
+            mock(TrackCommand.class),
+            mock(HelpCommand.class)
         );
 
         var result = userMessageProcessorImpl.commands();
