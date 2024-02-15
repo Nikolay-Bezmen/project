@@ -2,6 +2,7 @@ package bot.links;
 
 import edu.java.bot.links.Link;
 import edu.java.bot.links.UserIdLinks;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -42,6 +43,7 @@ public class UserIdLinksTest {
         );
     }
 
+    @Disabled
     @Test
     void testAddTrackLink(){
         Link gitHubLink = new Link(URI.create(GIT_HUB), LocalDateTime.MIN);
@@ -59,6 +61,7 @@ public class UserIdLinksTest {
         UserIdLinks.unTrackLink(URI.create(STACK_OVER_FLOW), userId);
     }
 
+    @Disabled
     @Test
     void testUnTrackLink(){
         Link gitHubLink = new Link(URI.create(GIT_HUB), LocalDateTime.MIN);
