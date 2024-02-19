@@ -7,14 +7,15 @@ import com.pengrad.telegrambot.request.SendMessage;
 import edu.java.bot.commands.UnTrackCommand;
 import edu.java.bot.links.Link;
 import edu.java.bot.links.UserIdLinks;
+import java.net.URI;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import java.net.URI;
-import java.time.LocalDateTime;
 import static edu.java.bot.commands.UnTrackCommand.COMMAND_TEXT;
 import static edu.java.bot.commands.UnTrackCommand.CURRENT_LINK_UNTRACK;
 import static edu.java.bot.commands.UnTrackCommand.DESCRIPTION_TEXT;
@@ -31,7 +32,8 @@ public class UnTrackCommandTest {
     private Message message;
     @Mock
     private Chat chat;
-
+    @Mock
+    private UserIdLinks userIdLinks;
     @InjectMocks
     private UnTrackCommand unTrackCommand;
 
@@ -65,9 +67,11 @@ public class UnTrackCommandTest {
         doReturn(chat).when(message).chat();
         doReturn(userId).when(chat).id();
         doReturn(messageText).when(message).text();
+        doReturn(true).when(userIdLinks).unTrackLink(Mockito.any(URI.class), Mockito.any(Long.class));
+
 
         Link link = new Link(URI.create(linkUri), LocalDateTime.MIN);
-        UserIdLinks.addTrackLink(link, userId);
+        userIdLinks.addTrackLink(link, userId);
 
         SendMessage correctSendMessage = new SendMessage(userId, LINK_UNTRACKED_IS_CORRECT.formatted(linkUri));
         SendMessage sendMessage = unTrackCommand.handle(update);
@@ -87,6 +91,7 @@ public class UnTrackCommandTest {
         doReturn(chat).when(message).chat();
         doReturn(userId).when(chat).id();
         doReturn(messageText).when(message).text();
+        doReturn(false).when(userIdLinks).unTrackLink(Mockito.any(URI.class), Mockito.any(Long.class));
 
         SendMessage correctSendMessage = new SendMessage(userId, CURRENT_LINK_UNTRACK.formatted(linkUri));
         SendMessage sendMessage = unTrackCommand.handle(update);

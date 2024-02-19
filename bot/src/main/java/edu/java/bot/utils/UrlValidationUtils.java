@@ -21,9 +21,7 @@ public class UrlValidationUtils {
         + "отслеживать в связи с проблемами с доступом к сайту";
 
     public static String validateLink(String link) {
-        HttpClient client = HttpClient.newHttpClient();
-
-        try {
+        try (HttpClient client = HttpClient.newHttpClient()) {
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(link))
                 .GET()
@@ -41,9 +39,5 @@ public class UrlValidationUtils {
         } catch (Exception e) {
             return PROBLEMS_WITH_ACCESS;
         }
-    }
-
-    public static URI getURL(String correctLink) {
-        return URI.create(correctLink);
     }
 }

@@ -18,6 +18,8 @@ public class UserIdLinksTest {
     private static final String GIT_HUB = "https://github.com";
     private static final String STACK_OVER_FLOW = "https://stackoverflow.com/";
     private static final Long userId = 1L;
+
+    private final UserIdLinks userIdLinks = new UserIdLinks();
     @Test
     void testGetLinkIfPossibleMethodIfCommandIsCorrect(){
         String commandText = "/track %s".formatted(GIT_HUB);
@@ -43,37 +45,35 @@ public class UserIdLinksTest {
         );
     }
 
-    @Disabled
     @Test
     void testAddTrackLink(){
         Link gitHubLink = new Link(URI.create(GIT_HUB), LocalDateTime.MIN);
         Link stackOverFlow = new Link(URI.create(STACK_OVER_FLOW), LocalDateTime.MIN.plusDays(1L));
 
-        UserIdLinks.addTrackLink(gitHubLink, userId);
-        UserIdLinks.addTrackLink(stackOverFlow, userId);
+        userIdLinks.addTrackLink(gitHubLink, userId);
+        userIdLinks.addTrackLink(stackOverFlow, userId);
 
         Set<Link> userLinkSet = Set.of(gitHubLink, stackOverFlow);
-        Set<Link> result = UserIdLinks.getTrackList(userId);
+        Set<Link> result = userIdLinks.getTrackList(userId);
 
         assertThat(userLinkSet.containsAll(result)).isTrue();
 
-        UserIdLinks.unTrackLink(URI.create(GIT_HUB), userId);
-        UserIdLinks.unTrackLink(URI.create(STACK_OVER_FLOW), userId);
+        userIdLinks.unTrackLink(URI.create(GIT_HUB), userId);
+        userIdLinks.unTrackLink(URI.create(STACK_OVER_FLOW), userId);
     }
 
-    @Disabled
     @Test
     void testUnTrackLink(){
         Link gitHubLink = new Link(URI.create(GIT_HUB), LocalDateTime.MIN);
         Link stackOverFlow = new Link(URI.create(STACK_OVER_FLOW), LocalDateTime.MIN.plusDays(1L));
 
-        UserIdLinks.addTrackLink(gitHubLink, userId);
-        UserIdLinks.addTrackLink(stackOverFlow, userId);
+        userIdLinks.addTrackLink(gitHubLink, userId);
+        userIdLinks.addTrackLink(stackOverFlow, userId);
 
-        UserIdLinks.unTrackLink(URI.create(GIT_HUB), userId);
-        UserIdLinks.unTrackLink(URI.create(STACK_OVER_FLOW), userId);
+        userIdLinks.unTrackLink(URI.create(GIT_HUB), userId);
+        userIdLinks.unTrackLink(URI.create(STACK_OVER_FLOW), userId);
 
-        Set<Link> result = UserIdLinks.getTrackList(userId);
+        Set<Link> result = userIdLinks.getTrackList(userId);
 
         assertThat(result.isEmpty()).isTrue();
     }

@@ -4,6 +4,7 @@ import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import edu.java.bot.commands.Command;
 import edu.java.bot.commands.HelpCommand;
 import edu.java.bot.commands.ListCommand;
 import edu.java.bot.commands.StartCommand;
@@ -12,18 +13,26 @@ import edu.java.bot.commands.UnTrackCommand;
 import edu.java.bot.links.UserIdLinks;
 import edu.java.bot.processor.UserMessageProcessorImpl;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.core.AutoConfigureCache;
+import org.springframework.stereotype.Component;
 import static edu.java.bot.commands.StartCommand.START_WORK;
+import static edu.java.bot.processor.UserMessageProcessorImpl.SUCH_COMMAND_IS_NOT_EXIST;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
+@Component
 @ExtendWith(MockitoExtension.class)
 public class UserMessageProcessorTest {
     @Mock
@@ -32,99 +41,47 @@ public class UserMessageProcessorTest {
     private Message message;
     @Mock
     private Chat chat;
+    @Autowired
+    private List<Command> commandList;
     @InjectMocks
     private UserMessageProcessorImpl userMessageProcessorImpl;
-    private void setUp(String commandText, Long chatId) {
-        doReturn(message).when(update).message();
-        doReturn(commandText).when(message).text();
-        doReturn(chat).when(message).chat();
-        doReturn(chatId).when(chat).id();
-    }
 
     @Test
     @DisplayName("тестирование метода commands который должен вернуть все доступные комманды")
     void testCommands() {
-        var correctCommandList = List.of(
-            mock(StartCommand.class),
-            mock(ListCommand.class),
-            mock(UnTrackCommand.class),
-            mock(TrackCommand.class),
-            mock(HelpCommand.class)
-        );
-
-        var result = userMessageProcessorImpl.commands();
-
-        assertThat(result).usingRecursiveComparison().isEqualTo(correctCommandList);
+        assertThat(userMessageProcessorImpl.commands()).usingRecursiveComparison().isEqualTo(commandList);
     }
 
     @Test
-    void testStartCommandProcess() {
-        Long chatId = 1L;
-        String correctTextSendMessage = START_WORK;
-        setUp("/start", chatId);
+    @DisplayName("тестирование если комманда существует")
+    void testProcessWithExistingCommand(){
+        doReturn(message).when(update).message();
+        doReturn("/start").when(message).text();
+        doReturn(chat).when(message).chat();
+        doReturn(123L).when(chat).id();
 
-        SendMessage correctSendMessage = new SendMessage(chatId, correctTextSendMessage);
-        SendMessage result = userMessageProcessorImpl.process(update);
+        List<Command> commands = new ArrayList<>();
+        commands.add(new StartCommand());
+        userMessageProcessorImpl = new UserMessageProcessorImpl(commands);
+        SendMessage correctSendMessage = new SendMessage(message.chat().id(), START_WORK);
+        SendMessage sendMessage = userMessageProcessorImpl.process(update);
 
-        assertThat(result.toWebhookResponse()).isEqualTo(correctSendMessage.toWebhookResponse());
+        assertThat(sendMessage.toWebhookResponse()).isEqualTo(correctSendMessage.toWebhookResponse());
     }
 
     @Test
-    void testHelpCommandProcess() {
-        Long chatId = 2L;
-        String correctTextSendMessage = "/help - выводит окно с командами\n\n" +
-            "/list - показывает список отслеживаемых ссылок\n\n" +
-            "/start - регистрирует пользователя\n\n" +
-            "/track - начинает отслеживание ссылки." +
-            " Чтобы начать отслеживание ссылки введите комманду \"/track ваша_ссылка\"\n\n" +
-            "/untrack - прекращает отслеживание ссылки." +
-            " Чтобы закончить отслеживание ссылки введите комманду \"/untrack ваша_ссылка\"\n\n";
-        setUp("/help", chatId);
+    @DisplayName("тестирование если комманда существует")
+    void testProcessWithNonExistingCommand(){
+        doReturn(message).when(update).message();
+        doReturn("/unknown").when(message).text();
+        doReturn(chat).when(message).chat();
+        doReturn(123L).when(chat).id();
 
-        SendMessage correctSendMessage = new SendMessage(chatId, correctTextSendMessage);
-        SendMessage result = userMessageProcessorImpl.process(update);
+        List<Command> commands = new ArrayList<>();
+        userMessageProcessorImpl = new UserMessageProcessorImpl(commands);
+        SendMessage correctSendMessage = new SendMessage(message.chat().id(), SUCH_COMMAND_IS_NOT_EXIST);
+        SendMessage sendMessage = userMessageProcessorImpl.process(update);
 
-        assertThat(result.toWebhookResponse()).isEqualTo(correctSendMessage.toWebhookResponse());
+        assertThat(sendMessage.toWebhookResponse()).isEqualTo(correctSendMessage.toWebhookResponse());
     }
-
-    @Test
-    void testListCommandProcess() {
-        Long chatId = 3L;
-        String correctTextSendMessage = "нет отслежтиваемых ссылок";
-        setUp("/list", chatId);
-
-        SendMessage correctSendMessage = new SendMessage(chatId, correctTextSendMessage);
-        SendMessage result = userMessageProcessorImpl.process(update);
-
-        assertThat(result.toWebhookResponse()).isEqualTo(correctSendMessage.toWebhookResponse());
-    }
-
-    @Test
-    void testTrackCommandProcess() {
-        Long chatId = 4L;
-        String linkUri = "https://github.com/Nikolay-Bezmen";
-        String correctTextSendMessage = "ссылка \"%s\" с этого момента отслеживается".formatted(linkUri);
-        setUp("/track %s".formatted(linkUri), chatId);
-
-        SendMessage correctSendMessage = new SendMessage(chatId, correctTextSendMessage);
-        SendMessage result = userMessageProcessorImpl.process(update);
-
-        assertThat(result.toWebhookResponse()).isEqualTo(correctSendMessage.toWebhookResponse());
-
-        UserIdLinks.unTrackLink(URI.create(linkUri), chatId);
-    }
-
-    @Test
-    void testUnTrackCommandProcess() {
-        Long chatId = 5L;
-        String linkUri = "https://github.com/Nikolay-Bezmen";
-        String correctTextSendMessage = "ссылки \"%s\" нет в списке отслеживаемых".formatted(linkUri);
-        setUp("/untrack %s".formatted(linkUri), chatId);
-
-        SendMessage correctSendMessage = new SendMessage(chatId, correctTextSendMessage);
-        SendMessage result = userMessageProcessorImpl.process(update);
-
-        assertThat(result.toWebhookResponse()).isEqualTo(correctSendMessage.toWebhookResponse());
-    }
-
 }

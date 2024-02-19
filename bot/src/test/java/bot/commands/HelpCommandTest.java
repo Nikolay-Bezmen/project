@@ -1,70 +1,85 @@
-package bot.commands;
+package edu.java.bot.commands;
 
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
-import edu.java.bot.commands.HelpCommand;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import static edu.java.bot.commands.HelpCommand.COMMAND_TEXT;
-import static edu.java.bot.commands.HelpCommand.DESCRIPTION_TEXT;
-import static org.mockito.Mockito.doReturn;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import org.mockito.MockitoAnnotations;
 
-@ExtendWith(MockitoExtension.class)
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+
 public class HelpCommandTest {
+
     @Mock
     private Update update;
+
     @Mock
     private Message message;
+
     @Mock
     private Chat chat;
+
+    @Mock
+    private Command mockCommand1;
+
+    @Mock
+    private Command mockCommand2;
+    @Mock
+    private List<Command> commands;
 
     @InjectMocks
     private HelpCommand helpCommand;
 
-    @Test
-    @DisplayName("тестирование метода description")
-    void testDescription(){
-        String description = helpCommand.description();
-        String correctDescription = DESCRIPTION_TEXT;
-
-        assertThat(description).isEqualTo(correctDescription);
-    }
-
-
-    @Test
-    @DisplayName("тестирование метода command")
-    void testCommand(){
-        String command = helpCommand.command();
-        String correctCommand = COMMAND_TEXT;
-
-        assertThat(command).isEqualTo(correctCommand);
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    @DisplayName("тестирование метода handle")
-    void testHandle(){
+    @DisplayName("Test command method")
+    void testCommand() {
+        assertThat(helpCommand.command()).isEqualTo(HelpCommand.COMMAND_TEXT);
+    }
+
+    @Test
+    @DisplayName("Test description method")
+    void testDescription() {
+        assertThat(helpCommand.description()).isEqualTo(HelpCommand.DESCRIPTION_TEXT);
+    }
+
+    @Test
+    @DisplayName("Test handle method")
+    void testHandle() {
+        List<Command> commandsList = new ArrayList<>();
+        commandsList.add(mockCommand1);
+        commandsList.add(mockCommand2);
+
+        doReturn("Command1").when(mockCommand1).command();
+        doReturn("Description1").when(mockCommand1).description();
+        doReturn("Command2").when(mockCommand2).command();
+        doReturn("Description2").when(mockCommand2).description();
+
         doReturn(message).when(update).message();
         doReturn(chat).when(message).chat();
-        doReturn(9910481L).when(chat).id();
-
-        String correctMessageText = "/help - выводит окно с командами\n\n" +
-            "/list - показывает список отслеживаемых ссылок\n\n" +
-            "/start - регистрирует пользователя\n\n" +
-            "/track - начинает отслеживание ссылки." +
-            " Чтобы начать отслеживание ссылки введите комманду \"/track ваша_ссылка\"\n\n" +
-            "/untrack - прекращает отслеживание ссылки." +
-            " Чтобы закончить отслеживание ссылки введите комманду \"/untrack ваша_ссылка\"\n\n";
+        doReturn(123L).when(chat).id();
+        doReturn(commandsList.stream()).when(commands).stream();
 
         SendMessage sendMessage = helpCommand.handle(update);
-        SendMessage correctSendMessage = new SendMessage(chat.id(), correctMessageText);
+        String expectedText = "Command1 - Description1\n\n" +
+            "Command2 - Description2\n\n";
+        SendMessage expectedSendMessage = new SendMessage(123L, expectedText);
 
-        assertThat(sendMessage.toWebhookResponse()).isEqualTo(correctSendMessage.toWebhookResponse());
+        assertThat(sendMessage.toWebhookResponse()).isEqualTo(expectedSendMessage.toWebhookResponse());
+//        assertThat(sendMessage.text()).isEqualTo(expectedSendMessage.text());
     }
 }

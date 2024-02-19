@@ -6,10 +6,13 @@ import edu.java.bot.links.Link;
 import edu.java.bot.links.UserIdLinks;
 import java.util.Comparator;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class ListCommand implements Command {
+    private final UserIdLinks userIdLinks;
     public static final String DESCRIPTION_TEXT = "показывает список отслеживаемых ссылок";
     public static final String COMMAND_TEXT = "/list";
     private static final String FORMAT_LINK = "%d. %s\n";
@@ -27,7 +30,7 @@ public class ListCommand implements Command {
 
     @Override
     public SendMessage handle(Update update) {
-        List<Link> trackList = UserIdLinks.getTrackList(update.message().chat().id()).stream()
+        List<Link> trackList = userIdLinks.getTrackList(update.message().chat().id()).stream()
             .sorted(Comparator.comparing(Link::startTrackingDateTime))
             .toList();
 

@@ -7,19 +7,14 @@ import com.pengrad.telegrambot.request.SendMessage;
 import edu.java.bot.commands.TrackCommand;
 import edu.java.bot.links.Link;
 import edu.java.bot.links.UserIdLinks;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import java.net.URI;
-import java.time.LocalDateTime;
-import static edu.java.bot.commands.TrackCommand.ADDED_IS_SUCCESS;
 import static edu.java.bot.commands.TrackCommand.ALREADY_EXISTS;
-import static edu.java.bot.commands.TrackCommand.COMMAND_TEXT;
-import static edu.java.bot.commands.TrackCommand.DESCRIPTION_TEXT;
 import static edu.java.bot.utils.UrlValidationUtils.INCORRECT_URL;
 import static edu.java.bot.utils.UrlValidationUtils.PROBLEMS_WITH_ACCESS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -33,75 +28,65 @@ public class TrackCommandTest {
     private Message message;
     @Mock
     private Chat chat;
+    @Mock
+    private UserIdLinks userIdLinks;
 
     @InjectMocks
     private TrackCommand trackCommand;
 
     @Test
     @DisplayName("тестирование метода description")
-    void testDescription(){
-        String description = trackCommand.description();
-        String correctDescription = DESCRIPTION_TEXT;
-
-        assertThat(description).isEqualTo(correctDescription);
+    void testDescription() {
+        assertThat(trackCommand.description()).isEqualTo(trackCommand.DESCRIPTION_TEXT);
     }
-
 
     @Test
     @DisplayName("тестирование метода command")
-    void testCommand(){
-        String command = trackCommand.command();
-        String correctCommand = COMMAND_TEXT;
-
-        assertThat(command).isEqualTo(correctCommand);
+    void testCommand() {
+        assertThat(trackCommand.command()).isEqualTo(trackCommand.COMMAND_TEXT);
     }
 
-    @Disabled
     @Test
-    @DisplayName("тестирование метода handle если комманда польностью корректна")
-    void testHandleIfTheCommandIsCompletelyCorrect(){
-        String linkUri = "https://github.com/Nikolay-Bezmen";
-        String messageText = "/track %s".formatted(linkUri);
-        Long userId = 1L;
+    @DisplayName("тестирование метода handle если комманда корректна")
+    void testHandleWithValidURL() {
+        String validURL = "https://example.com";
+        String commandText = "/track " + validURL;
+        String expectedResponse = "ссылка \"" + validURL + "\" с этого момента отслеживается";
 
         doReturn(message).when(update).message();
+        doReturn(commandText).when(message).text();
         doReturn(chat).when(message).chat();
-        doReturn(userId).when(chat).id();
-        doReturn(messageText).when(message).text();
+        doReturn(123456L).when(chat).id();
+        doReturn(true).when(userIdLinks).addTrackLink(Mockito.any(Link.class), Mockito.any(Long.class));
 
-
-        SendMessage correctSendMessage = new SendMessage(userId, ADDED_IS_SUCCESS.formatted(linkUri));
         SendMessage sendMessage = trackCommand.handle(update);
+        SendMessage correctSendMessage = new SendMessage(message.chat().id(), expectedResponse);
 
         assertThat(sendMessage.toWebhookResponse()).isEqualTo(correctSendMessage.toWebhookResponse());
     }
 
     @Test
     @DisplayName("тестирование метода handle если ссылка уже отслеживается")
-    void testHandleIfLinkAlreadyExistsInTrackList(){
-        String linkUri = "https://github.com/Nikolay-Bezmen";
-        String messageText = "/track %s".formatted(linkUri);
-        Long userId = 1L;
+    void testHandleIfLinkAlreadyExistsInTrackList() {
+        String validURL = "https://example.com";
+        String commandText = "/track " + validURL;
+        String expectedResponse = ALREADY_EXISTS.formatted(validURL);
 
         doReturn(message).when(update).message();
+        doReturn(commandText).when(message).text();
         doReturn(chat).when(message).chat();
-        doReturn(userId).when(chat).id();
-        doReturn(messageText).when(message).text();
+        doReturn(123456L).when(chat).id();
+        doReturn(false).when(userIdLinks).addTrackLink(Mockito.any(Link.class), Mockito.any(Long.class));
 
-        Link link = new Link(URI.create(linkUri), LocalDateTime.MIN);
-        UserIdLinks.addTrackLink(link, userId);
-
-        SendMessage correctSendMessage = new SendMessage(userId, ALREADY_EXISTS.formatted(linkUri));
         SendMessage sendMessage = trackCommand.handle(update);
+        SendMessage correctSendMessage = new SendMessage(message.chat().id(), expectedResponse);
 
         assertThat(sendMessage.toWebhookResponse()).isEqualTo(correctSendMessage.toWebhookResponse());
-
-        UserIdLinks.unTrackLink(URI.create(linkUri), userId);
     }
 
     @Test
     @DisplayName("тестирование метода handle если ссылка не корректна")
-    void testHandleIfLinkIsNotCorrect(){
+    void testHandleIfLinkIsNotCorrect() {
         String linkUri = "мусор";
         String messageText = "/track %s".formatted(linkUri);
         Long userId = 1L;
@@ -119,7 +104,7 @@ public class TrackCommandTest {
 
     @Test
     @DisplayName("тестирование метода handle если нет доступа на сайт по ссылке")
-    void testHandleIfCodeResponseIsNotOk(){
+    void testHandleIfCodeResponseIsNotOk() {
         String linkUri = "https://github.com/Nikolay-Bezmeboqugf823f98fh91cmo2";
         String messageText = "/track %s".formatted(linkUri);
         Long userId = 1L;

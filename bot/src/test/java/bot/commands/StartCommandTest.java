@@ -32,20 +32,14 @@ public class StartCommandTest {
     @Test
     @DisplayName("тестирование метода description")
     void testDescription(){
-        String description = startCommand.description();
-        String correctDescription = DESCRIPTION_TEXT;
-
-        assertThat(description).isEqualTo(correctDescription);
+        assertThat(startCommand.description()).isEqualTo(startCommand.DESCRIPTION_TEXT);
     }
 
 
     @Test
     @DisplayName("тестирование метода command")
     void testCommand(){
-        String command = startCommand.command();
-        String correctCommand = COMMAND_TEXT;
-
-        assertThat(command).isEqualTo(correctCommand);
+        assertThat(startCommand.command()).isEqualTo(startCommand.COMMAND_TEXT);
     }
 
     @Test

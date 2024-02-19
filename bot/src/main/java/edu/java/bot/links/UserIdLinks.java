@@ -5,25 +5,29 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UserIdLinks {
-    private UserIdLinks() {
+    public UserIdLinks() {
+        trackMap = new HashMap<>();
+        trackSet = new HashMap<>();
     }
 
-    private static final Map<Long, Set<Link>> TRACK_SET = new HashMap<>();
-    private static final Map<Long, Map<URI, Link>> TRACK_MAP = new HashMap<>();
+    private final Map<Long, Set<Link>> trackSet;
+    private final Map<Long, Map<URI, Link>> trackMap;
 
-    public static Set<Link> getTrackList(Long userId) {
-        if (!TRACK_SET.containsKey(userId)) {
-            TRACK_SET.put(userId, new HashSet<>());
-            TRACK_MAP.put(userId, new HashMap<>());
+    public Set<Link> getTrackList(Long userId) {
+        if (!trackSet.containsKey(userId)) {
+            trackSet.put(userId, new HashSet<>());
+            trackMap.put(userId, new HashMap<>());
 
         }
-        return new HashSet<>(TRACK_SET.get(userId));
+        return new HashSet<>(trackSet.get(userId));
 
     }
 
-    public static boolean addTrackLink(Link link, Long userId) {
+    public boolean addTrackLink(Link link, Long userId) {
         var userTrackSet = getTrackSetByUserId(userId);
         var userTrackMap = getTrackMapByUserId(userId);
 
@@ -37,7 +41,7 @@ public class UserIdLinks {
         }
     }
 
-    public static boolean unTrackLink(URI uri, Long userId) {
+    public boolean unTrackLink(URI uri, Long userId) {
         var userTrackSet = getTrackSetByUserId(userId);
         var userTrackMap = getTrackMapByUserId(userId);
 
@@ -74,19 +78,19 @@ public class UserIdLinks {
         }
     }
 
-    private static Set<Link> getTrackSetByUserId(Long userId) {
-        if (!TRACK_SET.containsKey(userId)) {
-            TRACK_SET.put(userId, new HashSet<>());
+    public Set<Link> getTrackSetByUserId(Long userId) {
+        if (!trackSet.containsKey(userId)) {
+            trackSet.put(userId, new HashSet<>());
         }
 
-        return TRACK_SET.get(userId);
+        return trackSet.get(userId);
     }
 
-    private static Map<URI, Link> getTrackMapByUserId(Long userId) {
-        if (!TRACK_MAP.containsKey(userId)) {
-            TRACK_MAP.put(userId, new HashMap<>());
+    private Map<URI, Link> getTrackMapByUserId(Long userId) {
+        if (!trackMap.containsKey(userId)) {
+            trackMap.put(userId, new HashMap<>());
         }
 
-        return TRACK_MAP.get(userId);
+        return trackMap.get(userId);
     }
 }
